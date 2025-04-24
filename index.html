@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Label Printer</title>
+
+  <!-- Favicon for Light Theme -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><path fill='black' fill-rule='evenodd' d='M448 277.333V448H149.333L64 362.667l85.333-85.334zM448 64v170.667H149.333L64 149.333L149.333 64z'/></svg>" media="(prefers-color-scheme: light)">
+
+  <!-- Favicon for Dark Theme -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'><path fill='white' fill-rule='evenodd' d='M448 277.333V448H149.333L64 362.667l85.333-85.334zM448 64v170.667H149.333L64 149.333L149.333 64z'/></svg>">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Full blue transparent effect for selected labels */
+    .selected {
+      background-color: rgba(0, 123, 255, 0.5); /* Blue background with transparency */
+      color: black; /* Ensure text remains readable */
+      font-weight: bold; /* Make text bold */
+    }
+    .label {
+      width: 70mm;
+      height: 42mm;
+      border: 1px dashed #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      box-sizing: border-box;
+      margin-bottom: 5px;
+    }
+    /* Border for preview pane */
+    #preview-content {
+      border: 1px solid #000; /* Black border for preview */
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex justify-center items-start pt-10">
+  <div class="container mx-auto flex gap-10">
+    <!-- Label Grid -->
+    <div id="label-sheet" class="grid grid-cols-3 gap-0 w-[210mm] h-[297mm] border border-gray-300 bg-white shadow-md">
+      <!-- Labels will be dynamically generated here -->
+    </div>
+
+    <!-- Controls -->
+    <div class="w-80 flex flex-col gap-6 bg-white p-6 rounded-lg shadow-md">
+      <textarea id="label-content" class="resize-none p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        rows="5" placeholder="Enter label content here..."></textarea>
+
+      <!-- Text Formatting Buttons -->
+      <div class="flex gap-2">
+        <button id="bold-toggle" class="py-1 px-3 bg-gray-200 text-gray-800 rounded-md shadow hover:bg-gray-300 focus:outline-none focus:ring focus:ring-blue-500">
+          Bold
+        </button>
+        <button id="italic-toggle" class="py-1 px-3 bg-gray-200 text-gray-800 rounded-md shadow hover:bg-gray-300 focus:outline-none focus:ring focus:ring-blue-500">
+          Italic
+        </button>
+        <button id="underline-toggle" class="py-1 px-3 bg-gray-200 text-gray-800 rounded-md shadow hover:bg-gray-300 focus:outline-none focus:ring focus:ring-blue-500">
+          Underline
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <input type="checkbox" id="show-borders" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+        <label for="show-borders" class="text-sm font-medium text-gray-700">Show Borders on Print</label>
+      </div>
+
+      <div class="flex flex-col space-y-2">
+        <label for="font-size" class="text-sm font-medium text-gray-700">Font Size:</label>
+        <select id="font-size" class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="10px">10px</option>
+          <option value="12px" selected>12px</option>
+          <option value="14px">14px</option>
+          <option value="16px">16px</option>
+          <option value="18px">18px</option>
+          <option value="20px">20px</option>
+          <option value="24px">24px</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col space-y-2">
+        <label for="font-family" class="text-sm font-medium text-gray-700">Font Family:</label>
+        <select id="font-family" class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="Arial" selected>Arial</option>
+          <option value="'Times New Roman'">Times New Roman</option>
+          <option value="'Courier New'">Courier New</option>
+          <option value="Verdana">Verdana</option>
+          <option value="Tahoma">Tahoma</option>
+          <option value="Georgia">Georgia</option>
+          <option value="'Roboto', sans-serif">Roboto</option>
+          <option value="'Rubik', sans-serif">Rubik</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col space-y-2">
+        <label for="font-color" class="text-sm font-medium text-gray-700">Font Color:</label>
+        <input id="font-color" type="color" value="#000000" class="w-14 h-8 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- Alignment Options -->
+      <div class="flex flex-col space-y-2">
+        <label for="text-alignment" class="text-sm font-medium text-gray-700">Text Alignment:</label>
+        <select id="text-alignment" class="p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="left">Left</option>
+          <option value="center" selected>Center</option>
+          <option value="right">Right</option>
+          <option value="justify">Justify</option>
+        </select>
+      </div>
+
+      <button id="print-label" class="py-2 px-4 bg-blue-600 text-white rounded-md shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        Print Selected Labels
+      </button>
+    </div>
+
+    <!-- Preview Pane -->
+    <div id="preview-pane" class="w-80 bg-white p-5 rounded-lg shadow-md">
+      <h3 class="text-lg font-bold mb-4">Preview</h3>
+      <div id="preview-content" class="label"></div>
+    </div>
+  </div>
+
+  <script>
+    const sheet = document.getElementById('label-sheet');
+    const labelContent = document.getElementById('label-content');
+    const printButton = document.getElementById('print-label');
+    const showBordersCheckbox = document.getElementById('show-borders');
+    const fontSizeDropdown = document.getElementById('font-size');
+    const fontFamilyDropdown = document.getElementById('font-family');
+    const boldToggle = document.getElementById('bold-toggle');
+    const italicToggle = document.getElementById('italic-toggle');
+    const underlineToggle = document.getElementById('underline-toggle');
+    const fontColorPicker = document.getElementById('font-color'); // Font color picker
+    const textAlignmentDropdown = document.getElementById('text-alignment'); // Alignment dropdown
+    const previewContent = document.getElementById('preview-content');
+
+    let isBold = false;
+    let isItalic = false;
+    let isUnderline = false;
+
+    // Create the label grid
+    for (let i = 0; i < 21; i++) {
+      const label = document.createElement('div');
+      label.className = 'border border-dashed border-gray-300 flex justify-center items-center text-sm text-gray-600 cursor-pointer';
+      label.dataset.index = i + 1;
+      label.innerHTML = `<span>Label ${i + 1}</span>`;
+      label.addEventListener('click', () => toggleLabelSelection(label));
+      sheet.appendChild(label);
+    }
+
+    let selectedLabels = new Set();
+
+    // Toggle label selection
+    function toggleLabelSelection(label) {
+      const labelIndex = parseInt(label.dataset.index, 10);
+      if (selectedLabels.has(labelIndex)) {
+        selectedLabels.delete(labelIndex);
+        label.classList.remove('selected'); // Remove blue transparent effect
+      } else {
+        selectedLabels.add(labelIndex);
+        label.classList.add('selected'); // Apply blue transparent effect
+      }
+    }
+
+    // Update the preview panel
+    function updatePreview() {
+      const content = labelContent.value.trim().replace(/\n/g, '<br>'); // Convert newlines to <br>
+      const fontSize = fontSizeDropdown.value;
+      const fontFamily = fontFamilyDropdown.value;
+      const fontWeight = isBold ? 'bold' : 'normal';
+      const fontStyle = isItalic ? 'italic' : 'normal';
+      const textDecoration = isUnderline ? 'underline' : 'none';
+      const fontColor = fontColorPicker.value;
+      const textAlign = textAlignmentDropdown.value; // Get alignment value
+
+      // Update the preview content
+      previewContent.innerHTML = content;
+      previewContent.style.fontSize = fontSize;
+      previewContent.style.fontFamily = fontFamily;
+      previewContent.style.fontWeight = fontWeight;
+      previewContent.style.fontStyle = fontStyle;
+      previewContent.style.textDecoration = textDecoration;
+      previewContent.style.color = fontColor; // Apply the selected font color
+      previewContent.style.textAlign = textAlign; // Apply the selected alignment
+      previewContent.style.border = showBordersCheckbox.checked ? '1px dashed #000' : '1px solid #000';
+    }
+
+    fontColorPicker.addEventListener('input', updatePreview);
+    labelContent.addEventListener('input', updatePreview);
+    fontSizeDropdown.addEventListener('change', updatePreview);
+    fontFamilyDropdown.addEventListener('change', updatePreview);
+    textAlignmentDropdown.addEventListener('change', updatePreview);
+    showBordersCheckbox.addEventListener('change', updatePreview);
+
+    boldToggle.addEventListener('click', () => {
+      isBold = !isBold;
+      boldToggle.classList.toggle('bg-blue-500', isBold);
+      boldToggle.classList.toggle('text-white', isBold);
+      updatePreview();
+    });
+
+    italicToggle.addEventListener('click', () => {
+      isItalic = !isItalic;
+      italicToggle.classList.toggle('bg-blue-500', isItalic);
+      italicToggle.classList.toggle('text-white', isItalic);
+      updatePreview();
+    });
+
+    underlineToggle.addEventListener('click', () => {
+      isUnderline = !isUnderline;
+      underlineToggle.classList.toggle('bg-blue-500', isUnderline);
+      underlineToggle.classList.toggle('text-white', isUnderline);
+      updatePreview();
+    });
+
+    printButton.addEventListener('click', () => {
+      if (selectedLabels.size === 0) {
+        alert('Please select at least one label to print!');
+        return;
+      }
+
+      const content = labelContent.value.trim().replace(/\n/g, '<br>'); // Convert newlines to <br>
+      if (!content) {
+        alert('Please enter label content!');
+        return;
+      }
+
+      const showBorders = showBordersCheckbox.checked;
+      const fontSize = fontSizeDropdown.value;
+      const fontFamily = fontFamilyDropdown.value;
+      const fontWeight = isBold ? 'bold' : 'normal';
+      const fontStyle = isItalic ? 'italic' : 'normal';
+      const textDecoration = isUnderline ? 'underline' : 'none';
+      const fontColor = fontColorPicker.value;
+      const textAlign = textAlignmentDropdown.value; // Get alignment for printing
+
+      // Open a new window for printing with larger size
+      const printWindow = window.open('', '', 'width=1024,height=768');
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Print Labels</title>
+            <style>
+              @page {
+                size: A4 portrait;
+                margin: 0;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+                width: 210mm;
+                height: 297mm;
+                position: relative;
+              }
+              .print-label {
+                position: absolute;
+                width: 70mm;
+                height: 42.3mm;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: ${textAlign}; /* Apply alignment for printing */
+                font-family: ${fontFamily};
+                font-size: ${fontSize};
+                font-weight: ${fontWeight};
+                font-style: ${fontStyle};
+                text-decoration: ${textDecoration};
+                color: ${fontColor}; /* Apply the selected font color */
+                box-sizing: border-box;
+                ${showBorders ? 'border: 1px dashed #000;' : 'border: none;'}
+              }
+            </style>
+          </head>
+          <body>
+            ${Array.from(selectedLabels)
+              .map(
+                (labelIndex) => `
+              <div
+                class="print-label"
+                style="top: calc(${Math.floor((labelIndex - 1) / 3)} * 42.3mm); left: calc(${(labelIndex - 1) % 3} * 70mm);"
+              >
+                ${content}
+              </div>
+            `
+              )
+              .join('')}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    });
+
+    // Initialize preview
+    updatePreview();
+  </script>
+</body>
+</html>
